@@ -253,7 +253,7 @@ abstract class ".$this->getClassname()." extends ".$parentClass." ";
         $this->declareClassFromBuilder($this->getStubPeerBuilder());
         $this->declareClassFromBuilder($this->getStubQueryBuilder());
         $this->declareClasses(
-            'Propel', 'PropelException', 'PDO', 'PropelPDO', 'Criteria',
+            'Propel', 'PropelException', 'PDO', 'PropelPDO', 'PropelQuery', 'Criteria',
             'Persistent', 'BasePeer', 'PropelCollection',
             'PropelObjectCollection', 'Exception'
         );
@@ -2065,7 +2065,11 @@ abstract class ".$this->getClassname()." extends ".$parentClass." ";
             if (\$rehydrate) {
                 \$this->ensureConsistency();
             }
+            \$this->postHydrate(\$row, \$startcol, \$rehydrate);";
+        
+        $this->applyBehaviorModifier('postHydrate', $script, "            ");
 
+        $script .= "
             return \$startcol + $n; // $n = ".$this->getPeerClassname()."::NUM_HYDRATE_COLUMNS.
 
         } catch (Exception \$e) {
