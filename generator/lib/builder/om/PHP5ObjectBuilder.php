@@ -3261,13 +3261,14 @@ abstract class ".$this->getClassname()." extends ".$parentClass." ";
      * Get the associated $className object
      *
      * @param PropelPDO \$con Optional Connection object.
+     * @param \$doQuery Executes a query to get the object if required
      * @return $className The associated $className object.
      * @throws PropelException
      */
-    public function get".$this->getFKPhpNameAffix($fk, $plural = false)."(PropelPDO \$con = null)
+    public function get".$this->getFKPhpNameAffix($fk, $plural = false)."(PropelPDO \$con = null, \$doQuery = true)
     {";
         $script .= "
-        if (\$this->$varName === null && ($conditional)) {";
+        if (\$this->$varName === null && ($conditional) && \$doQuery) {";
         if ($useRetrieveByPk) {
             $script .= "
             \$this->$varName = ".$fkQueryBuilder->getClassname()."::create()->findPk($localColumns, \$con);";
@@ -3971,7 +3972,7 @@ abstract class ".$this->getClassname()." extends ".$parentClass." ";
         \$this->$varName = \$v;
 
         // Make sure that that the passed-in $className isn't already associated with this object
-        if (\$v !== null && \$v->get".$this->getFKPhpNameAffix($refFK, $plural = false)."() === null) {
+        if (\$v !== null && \$v->get".$this->getFKPhpNameAffix($refFK, $plural = false)."(null, false) === null) {
             \$v->set".$this->getFKPhpNameAffix($refFK, $plural = false)."(\$this);
         }
 
@@ -4755,7 +4756,7 @@ abstract class ".$this->getClassname()." extends ".$parentClass." ";
          // check the columns in natural order for more readable SQL queries";
         foreach ($table->getColumns() as $column) {
             $constantName = $this->getColumnConstant($column);
-            $identifier = var_export($platform->quoteIdentifier(strtoupper($column->getName())), true);
+            $identifier = var_export($platform->quoteIdentifier($column->getName()), true);
             $script .= "
         if (\$this->isColumnModified($constantName)) {
             \$modifiedColumns[':p' . \$index++]  = $identifier;
@@ -4775,7 +4776,7 @@ abstract class ".$this->getClassname()." extends ".$parentClass." ";
             foreach (\$modifiedColumns as \$identifier => \$columnName) {
                 switch (\$columnName) {";
         foreach ($table->getColumns() as $column) {
-            $columnNameCase = var_export($platform->quoteIdentifier(strtoupper($column->getName())), true);
+            $columnNameCase = var_export($platform->quoteIdentifier($column->getName()), true);
             $script .= "
                     case $columnNameCase:";
             $script .= $platform->getColumnBindingPHP($column, "\$identifier", '$this->' . strtolower($column->getName()), '						');
