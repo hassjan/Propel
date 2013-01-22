@@ -12,13 +12,13 @@
 require_once dirname(__FILE__) . '/../../../../generator/lib/builder/util/XmlToAppData.php';
 require_once dirname(__FILE__) . '/../../../../generator/lib/config/GeneratorConfig.php';
 require_once dirname(__FILE__) . '/../../../../generator/lib/platform/DefaultPlatform.php';
+require_once dirname(__FILE__) . '/../../../../generator/lib/platform/MysqlPlatform.php';
 require_once dirname(__FILE__) . '/../../../tools/helpers/DummyPlatforms.php';
 
 /**
  * Tests for Table model class
  *
  * @author     Martin Poeschl (mpoeschl@marmot.at)
- * @version    $Revision$
  * @package    generator.model
  */
 class TableTest extends PHPUnit_Framework_TestCase
@@ -97,6 +97,69 @@ EOF;
         set_include_path($include_path);
         $table = $appData->getDatabase('test1')->getTable('table1');
         $this->assertThat($table->getBehavior('timestampable'), $this->isInstanceOf('TimestampableBehavior'), 'addBehavior() uses the behavior class defined in build.properties');
+    }
+
+
+    public function testAddExtraIndicesForeignKeys()
+    {
+        $include_path = get_include_path();
+        set_include_path($include_path . PATH_SEPARATOR . realpath(dirname(__FILE__) . '/../../../../generator/lib'));
+
+        $platform = new MysqlPlatform();
+        $xmlToAppData = new XmlToAppData($platform);
+        $config = new GeneratorConfig();
+
+        $config->setBuildProperties(array(
+            'propel.behavior.autoaddpkbehavior.class' => 'behavior.AutoAddPkBehavior'
+        ));
+
+        $xmlToAppData->setGeneratorConfig($config);
+
+        $schema = <<<EOF
+<database name="test1">
+
+  <table name="foo">
+
+    <behavior name="autoAddPKBehavior"/>
+    <column name="name" type="VARCHAR"/>
+    <column name="subid" type="INTEGER"/>
+
+  </table>
+
+  <table name="bar">
+
+    <behavior name="autoAddPKBehavior"/>
+
+    <column name="name" type="VARCHAR"/>
+    <column name="subid" type="INTEGER"/>
+
+    <foreign-key foreignTable="foo">
+      <reference local="id" foreign="id"/>
+      <reference local="subid" foreign="subid"/>
+    </foreign-key>
+
+  </table>
+</database>
+EOF;
+
+$expectedRelationSql = "
+CREATE TABLE `bar`
+(
+    `name` VARCHAR(255),
+    `subid` INTEGER,
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    PRIMARY KEY (`id`),
+    INDEX `bar_FI_1` (`id`, `subid`)
+) ENGINE=MyISAM;
+";
+        $appData = $xmlToAppData->parseString($schema);
+        set_include_path($include_path);
+
+        $table = $appData->getDatabase('test1')->getTable('bar');
+        $relationTableSql = $platform->getAddTableDDL($table);
+
+        $this->assertEquals($expectedRelationSql, $relationTableSql);
+
     }
 
     /**
