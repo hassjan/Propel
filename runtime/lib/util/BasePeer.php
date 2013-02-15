@@ -334,8 +334,8 @@ class BasePeer
 
         // Get list of required tables, containing all columns
         $tablesColumns = $selectCriteria->getTablesColumns();
-        if (empty($tablesColumns)) {
-            $tablesColumns = array($selectCriteria->getPrimaryTableName() => array());
+        if (empty($tablesColumns) && ($table = $selectCriteria->getPrimaryTableName())) {
+            $tablesColumns = array($table => array());
         }
 
         // we also need the columns for the update SQL
@@ -572,8 +572,10 @@ class BasePeer
                 foreach ($col->getValidators() as $validatorMap) {
                     $validator = BasePeer::getValidator($validatorMap->getClass());
                     if ($validator && ($col->isNotNull() || $colValue !== null) && $validator->isValid($validatorMap, $colValue) === false) {
-                        if (!isset($failureMap[$colName])) { // for now we do one ValidationFailed per column, not per rule
+                        // for now we do one ValidationFailed per column, not per rule
+                        if (!isset($failureMap[$colName])) {
                             $failureMap[$colName] = new ValidationFailed($colName, $validatorMap->getMessage(), $validator);
+                            break;
                         }
                     }
                 }
