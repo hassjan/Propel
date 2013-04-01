@@ -484,7 +484,7 @@ class Criteria implements IteratorAggregate
      * postgresql.  Though it can be used to require any single sql statement
      * to use a transaction.
      *
-     * @param bool $v
+     * @param  bool $v
      * @return void
      */
     public function setUseTransaction($v)
@@ -963,7 +963,15 @@ class Criteria implements IteratorAggregate
      */
     public function addJoinObject(Join $join)
     {
-      if (!in_array($join, $this->joins)) { // compare equality, NOT identity
+        $isAlreadyAdded = false;
+        foreach ($this->joins as $alreadyAddedJoin) {
+            if ($join->equals($alreadyAddedJoin)) {
+                $isAlreadyAdded = true;
+                break;
+            }
+        }
+
+        if (!$isAlreadyAdded) {
             $this->joins[] = $join;
         }
 
@@ -1173,7 +1181,7 @@ class Criteria implements IteratorAggregate
     /**
      * Set limit.
      *
-     * @param int $limit An int with the value for limit.
+     * @param  int      $limit An int with the value for limit.
      * @return Criteria Modified Criteria object (for fluent API)
      */
     public function setLimit($limit)
@@ -1303,7 +1311,7 @@ class Criteria implements IteratorAggregate
     /**
      * Add group by column name.
      *
-     * @param  string $groupBy The name of the column to group by.
+     * @param  string   $groupBy The name of the column to group by.
      * @return Criteria Modified Criteria object (for fluent API)
      */
     public function addGroupByColumn($groupBy)
@@ -1316,7 +1324,7 @@ class Criteria implements IteratorAggregate
     /**
      * Add order by column name, explicitly specifying ascending.
      *
-     * @param  string $name The name of the column to order by.
+     * @param  string   $name The name of the column to order by.
      * @return Criteria Modified Criteria object (for fluent API)
      */
     public function addAscendingOrderByColumn($name)
@@ -1456,7 +1464,7 @@ class Criteria implements IteratorAggregate
      * This method checks another Criteria to see if they contain
      * the same attributes and hashtable entries.
      *
-     * @param Criteria|null $crit
+     * @param  Criteria|null $crit
      * @return boolean
      */
     public function equals($crit)
@@ -1677,10 +1685,10 @@ class Criteria implements IteratorAggregate
      *  - addAnd(column, value)
      *  - addAnd(Criterion)
      *
-     * @param mixed $p1         A Criterion, or a SQL clause with a question mark placeholder, or a column name
-     * @param mixed $value      The value to bind in the condition
-     * @param mixed $comparison A Criteria class constant, or a PDO::PARAM_ class constant
-     * @param bool $preferColumnCondition
+     * @param mixed $p1                    A Criterion, or a SQL clause with a question mark placeholder, or a column name
+     * @param mixed $value                 The value to bind in the condition
+     * @param mixed $comparison            A Criteria class constant, or a PDO::PARAM_ class constant
+     * @param bool  $preferColumnCondition
      *
      * @return Criteria A modified Criteria object.
      */
@@ -1713,10 +1721,10 @@ class Criteria implements IteratorAggregate
      *  - addOr(column, value)
      *  - addOr(Criterion)
      *
-     * @param mixed $p1         A Criterion, or a SQL clause with a question mark placeholder, or a column name
-     * @param mixed $value      The value to bind in the condition
-     * @param mixed $comparison A Criteria class constant, or a PDO::PARAM_ class constant
-     * @param bool $preferColumnCondition
+     * @param mixed $p1                    A Criterion, or a SQL clause with a question mark placeholder, or a column name
+     * @param mixed $value                 The value to bind in the condition
+     * @param mixed $comparison            A Criteria class constant, or a PDO::PARAM_ class constant
+     * @param bool  $preferColumnCondition
      *
      * @return Criteria A modified Criteria object.
      */
