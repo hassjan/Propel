@@ -8,12 +8,10 @@
  * @license    MIT License
  */
 
-/**
- * Class for exceptions thrown during schema parsing
- *
- * @version    $Revision$
- * @package    propel.generator.exception
- */
-class SchemaException extends Exception
+require_once 'phing/Task.php';
+require_once __DIR__ . '/../../stubs/functions.php';
+
+abstract class AbstractPropelTask extends Task
 {
+
 }

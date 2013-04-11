@@ -8,7 +8,7 @@
  * @license    MIT License
  */
 
-require_once 'phing/Task.php';
+require_once 'task/AbstractPropelTask.php';
 
 /**
  * This Task lists the migrations yet to be executed
@@ -16,10 +16,11 @@ require_once 'phing/Task.php';
  * @author     Francois Zaninotto
  * @package    propel.generator.task
  */
-abstract class BasePropelMigrationTask extends Task
+abstract class BasePropelMigrationTask extends AbstractPropelTask
 {
     /**
      * Destination directory for results of template scripts.
+     *
      * @var        PhingFile
      */
     protected $outputDirectory;
@@ -33,6 +34,7 @@ abstract class BasePropelMigrationTask extends Task
 
     /**
      * The migration table name
+     *
      * @var string
      */
     protected $migrationTable = 'propel_migration';
@@ -60,7 +62,9 @@ abstract class BasePropelMigrationTask extends Task
     /**
      * [REQUIRED] Set the output directory. It will be
      * created if it doesn't exist.
+     *
      * @param  PhingFile      $outputDirectory
+     *
      * @return void
      * @throws BuildException
      */
@@ -68,7 +72,7 @@ abstract class BasePropelMigrationTask extends Task
     {
         try {
             if (!$outputDirectory->exists()) {
-                $this->log("Output directory does not exist, creating: " . $outputDirectory->getPath(),Project::MSG_VERBOSE);
+                $this->log("Output directory does not exist, creating: " . $outputDirectory->getPath(), Project::MSG_VERBOSE);
                 if (!$outputDirectory->mkdirs()) {
                     throw new IOException("Unable to create Ouptut directory: " . $outputDirectory->getAbsolutePath());
                 }
@@ -81,6 +85,7 @@ abstract class BasePropelMigrationTask extends Task
 
     /**
      * Get the output directory.
+     *
      * @return string
      */
     public function getOutputDirectory()
@@ -90,6 +95,7 @@ abstract class BasePropelMigrationTask extends Task
 
     /**
      * Gets the GeneratorConfig object for this task or creates it on-demand.
+     *
      * @return GeneratorConfig
      */
     protected function getGeneratorConfig()
@@ -101,5 +107,4 @@ abstract class BasePropelMigrationTask extends Task
 
         return $this->generatorConfig;
     }
-
 }
