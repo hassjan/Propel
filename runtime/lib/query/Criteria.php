@@ -162,7 +162,7 @@ class Criteria implements IteratorAggregate
     /**
      * Storage of conditions data. Collection of Criterion objects.
      *
-     * @var        array
+     * @var        Criterion[]
      */
     protected $map = array();
 
@@ -193,6 +193,10 @@ class Criteria implements IteratorAggregate
      * @var        array
      */
     protected $joins = array();
+
+    /**
+     * @var        Criteria[]
+     */
     protected $selectQueries = array();
 
     /**
@@ -209,7 +213,7 @@ class Criteria implements IteratorAggregate
      *
      * @var        string
      */
-    protected $primaryTableName;
+    protected $primaryTableName = null;
 
     /** The name of the database as given in the constructor. */
     protected $originalDbName;
@@ -228,7 +232,7 @@ class Criteria implements IteratorAggregate
      *
      * @var        string
      */
-    protected $queryComment;
+    protected $queryComment = null;
 
     // flag to note that the criteria involves a blob.
     protected $blobFlag = null;
@@ -283,7 +287,7 @@ class Criteria implements IteratorAggregate
     /**
      * Get the criteria map, i.e. the array of Criterions
      *
-     * @return array
+     * @return Criterion[]
      */
     public function getMap()
     {
@@ -317,8 +321,11 @@ class Criteria implements IteratorAggregate
         $this->blobFlag = null;
         $this->aliases = array();
         $this->useTransaction = false;
-        $this->ifLvlCount = false;
-        $this->wasTrue = false;
+        $this->conditionalProxy = null;
+        $this->defaultCombineOperator = Criteria::LOGICAL_AND;
+        $this->primaryTableName = null;
+        $this->queryComment = null;
+
     }
 
     /**
@@ -947,6 +954,7 @@ class Criteria implements IteratorAggregate
         foreach ($conditions as $condition) {
             $left = $condition[0];
             $right = $condition[1];
+            $operator = isset($condition[2]) ? $condition[2] : JOIN::EQUAL;
             if ($pos = strrpos($left, '.')) {
                 $leftTableAlias = substr($left, 0, $pos);
                 $leftColumnName = substr($left, $pos + 1);
@@ -955,13 +963,20 @@ class Criteria implements IteratorAggregate
                 list($leftTableName, $leftTableAlias) = array(null, null);
                 $leftColumnName = $left;
             }
-            if ($pos = strrpos($right, '.')) {
+            if (is_string($right) && $pos = strrpos($right, '.')) {
                 $rightTableAlias = substr($right, 0, $pos);
                 $rightColumnName = substr($right, $pos + 1);
                 list($rightTableName, $rightTableAlias) = $this->getTableNameAndAlias($rightTableAlias);
+                $conditionClause = $leftTableAlias ? $leftTableAlias . '.' : ($leftTableName ? $leftTableName . '.' : '');
+                $conditionClause .= $leftColumnName;
+                $conditionClause .= $operator;
+                $conditionClause .= $rightTableAlias ? $rightTableAlias . '.' : ($rightTableName ? $rightTableName . '.' : '');
+                $conditionClause .= $rightColumnName;
+                $comparison = Criteria::CUSTOM;
             } else {
                 list($rightTableName, $rightTableAlias) = array(null, null);
-                $rightColumnName = $right;
+                $conditionClause = $right;
+                $comparison = $operator;
             }
             if (!$join->getRightTableName()) {
                 $join->setRightTableName($rightTableName);
@@ -969,15 +984,11 @@ class Criteria implements IteratorAggregate
             if (!$join->getRightTableAlias()) {
                 $join->setRightTableAlias($rightTableAlias);
             }
-            $conditionClause = $leftTableAlias ? $leftTableAlias . '.' : ($leftTableName ? $leftTableName . '.' : '');
-            $conditionClause .= $leftColumnName;
-            $conditionClause .= isset($condition[2]) ? $condition[2] : JOIN::EQUAL;
-            $conditionClause .= $rightTableAlias ? $rightTableAlias . '.' : ($rightTableName ? $rightTableName . '.' : '');
-            $conditionClause .= $rightColumnName;
-            $criterion = $this->getNewCriterion($leftTableName . '.' . $leftColumnName, $conditionClause, Criteria::CUSTOM);
+            $criterion = $this->getNewCriterion($leftTableName . '.' . $leftColumnName, $conditionClause, $comparison);
             if (null === $joinCondition) {
                 $joinCondition = $criterion;
             } else {
+                /* @var $joinCondition Criterion */
                 $joinCondition = $joinCondition->addAnd($criterion);
             }
         }
@@ -1042,7 +1053,7 @@ class Criteria implements IteratorAggregate
     /**
      * Checks whether this Criteria has a subquery.
      *
-     * @return Boolean
+     * @return boolean
      */
     public function hasSelectQueries()
     {
@@ -1052,7 +1063,7 @@ class Criteria implements IteratorAggregate
     /**
      * Get the associative array of Criteria for the subQueries per alias.
      *
-     * @return array Criteria[]
+     * @return Criteria[]
      */
     public function getSelectQueries()
     {
@@ -1087,6 +1098,7 @@ class Criteria implements IteratorAggregate
     {
         $aliasNumber = 0;
         foreach ($this->getSelectQueries() as $c1) {
+            /* @var $c1 Criteria */
             $aliasNumber += $c1->forgeSelectQueryAlias();
         }
 
@@ -1556,6 +1568,7 @@ class Criteria implements IteratorAggregate
                     return false;
                 }
                 foreach ($joins as $key => $join) {
+                    /* @var $join Join */
                     if (!$join->equals($this->joins[$key])) {
                         return false;
                     }

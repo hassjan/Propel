@@ -728,7 +728,7 @@ class CriteriaTest extends BookstoreTestBase
     }
 
     /**
-     * @link       http://propel.phpdb.org/trac/ticket/606
+     * @link       http://trac.propelorm.org/ticket/606
      */
     public function testAddJoinArray()
     {
@@ -744,7 +744,7 @@ class CriteriaTest extends BookstoreTestBase
     }
 
     /**
-     * @link       http://propel.phpdb.org/trac/ticket/606
+     * @link       http://trac.propelorm.org/ticket/606
      */
     public function testAddJoinArrayMultiple()
     {
@@ -765,7 +765,7 @@ class CriteriaTest extends BookstoreTestBase
     /**
      * Test the Criteria::addJoinMultiple() method with an implicit join
      *
-     * @link       http://propel.phpdb.org/trac/ticket/606
+     * @link       http://trac.propelorm.org/ticket/606
      */
     public function testAddJoinMultiple()
     {
@@ -787,7 +787,7 @@ class CriteriaTest extends BookstoreTestBase
     /**
      * Test the Criteria::addJoinMultiple() method with a value as second argument
      *
-     * @link       http://propel.phpdb.org/trac/ticket/606
+     * @link       http://trac.propelorm.org/ticket/606
      */
     public function testAddJoinMultipleValue()
     {
@@ -800,16 +800,26 @@ class CriteriaTest extends BookstoreTestBase
                 addSelectColumn("TABLE_A.id");
 
         $expect = 'SELECT TABLE_A.id FROM TABLE_A INNER JOIN TABLE_B '
-            . 'ON (TABLE_A.FOO_ID=TABLE_B.id AND TABLE_A.BAR=3)';
+            . 'ON (TABLE_A.FOO_ID=TABLE_B.id AND TABLE_A.BAR=:p1)';
         $params = array();
         $result = BasePeer::createSelectSql($c, $params);
         $this->assertEquals($expect, $result);
+
+        $con = Propel::getConnection(BookPeer::DATABASE_NAME);
+        $c = new Criteria();
+        $c->addMultipleJoin(array(
+                array(AuthorPeer::ID, BookPeer::AUTHOR_ID),
+                array(BookPeer::ISBN, 3)
+            ));
+        AuthorPeer::doSelectOne($c, $con);
+        $expectedSQL = 'SELECT author.id, author.first_name, author.last_name, author.email, author.age FROM author INNER JOIN book ON (author.id=book.author_id AND book.isbn=3) LIMIT 1';
+        $this->assertEquals($expectedSQL, $con->getLastExecutedQuery());
     }
 
     /**
      * Test the Criteria::addJoinMultiple() method with a joinType
      *
-     * @link       http://propel.phpdb.org/trac/ticket/606
+     * @link       http://trac.propelorm.org/ticket/606
      */
     public function testAddJoinMultipleWithJoinType()
     {
@@ -832,7 +842,7 @@ class CriteriaTest extends BookstoreTestBase
     /**
      * Test the Criteria::addJoinMultiple() method with operator
      *
-     * @link       http://propel.phpdb.org/trac/ticket/606
+     * @link       http://trac.propelorm.org/ticket/606
      */
     public function testAddJoinMultipleWithOperator()
     {
@@ -854,7 +864,7 @@ class CriteriaTest extends BookstoreTestBase
     /**
      * Test the Criteria::addJoinMultiple() method with join type and operator
      *
-     * @link       http://propel.phpdb.org/trac/ticket/606
+     * @link       http://trac.propelorm.org/ticket/606
      */
     public function testAddJoinMultipleWithJoinTypeAndOperator()
     {
@@ -874,9 +884,35 @@ class CriteriaTest extends BookstoreTestBase
         $this->assertEquals($expect, $result);
     }
 
+    public function testAddJoinMultipleWithInOperator()
+    {
+        $con = Propel::getConnection(BookPeer::DATABASE_NAME);
+        $c = new Criteria();
+        $c->addMultipleJoin(array(
+                array(AuthorPeer::ID, BookPeer::AUTHOR_ID),
+                array(BookPeer::ISBN, array(1, 7, 42), Criteria::IN)
+            ), Criteria::LEFT_JOIN);
+        AuthorPeer::doSelectOne($c, $con);
+        $expectedSQL = 'SELECT author.id, author.first_name, author.last_name, author.email, author.age FROM author LEFT JOIN book ON (author.id=book.author_id AND book.isbn IN (1,7,42)) LIMIT 1';
+        $this->assertEquals($expectedSQL, $con->getLastExecutedQuery());
+    }
+
+    public function testAddJoinMultipleWithNotInOperator()
+    {
+        $con = Propel::getConnection(BookPeer::DATABASE_NAME);
+        $c = new Criteria();
+        $c->addMultipleJoin(array(
+                array(AuthorPeer::ID, BookPeer::AUTHOR_ID),
+                array(BookPeer::ISBN, array(1, 7, 42), Criteria::NOT_IN)
+            ), Criteria::LEFT_JOIN);
+        AuthorPeer::doSelectOne($c, $con);
+        $expectedSQL = 'SELECT author.id, author.first_name, author.last_name, author.email, author.age FROM author LEFT JOIN book ON (author.id=book.author_id AND book.isbn NOT IN (1,7,42)) LIMIT 1';
+        $this->assertEquals($expectedSQL, $con->getLastExecutedQuery());
+    }
+
     /**
      * Tests adding duplicate joins.
-     * @link       http://propel.phpdb.org/trac/ticket/613
+     * @link       http://trac.propelorm.org/ticket/613
      */
     public function testAddJoin_Duplicate()
     {
@@ -904,7 +940,7 @@ class CriteriaTest extends BookstoreTestBase
     }
 
     /**
-     * @link       http://propel.phpdb.org/trac/ticket/634
+     * @link       http://trac.propelorm.org/ticket/634
      */
     public function testHasSelectClause()
     {
@@ -921,7 +957,7 @@ class CriteriaTest extends BookstoreTestBase
 
     /**
      * Tests including aliases in criterion objects.
-     * @link       http://propel.phpdb.org/trac/ticket/636
+     * @link       http://trac.propelorm.org/ticket/636
      */
     public function testAliasInCriterion()
     {
@@ -990,7 +1026,7 @@ class CriteriaTest extends BookstoreTestBase
 
     /**
      * Test whether GROUP BY is being respected in equals() check.
-     * @link       http://propel.phpdb.org/trac/ticket/674
+     * @link       http://trac.propelorm.org/ticket/674
      */
     public function testEqualsGroupBy()
     {
@@ -1011,7 +1047,7 @@ class CriteriaTest extends BookstoreTestBase
 
     /**
      * Test whether calling setDistinct twice puts in two distinct keywords or not.
-     * @link       http://propel.phpdb.org/trac/ticket/716
+     * @link       http://trac.propelorm.org/ticket/716
      */
     public function testDoubleSelectModifiers()
     {
