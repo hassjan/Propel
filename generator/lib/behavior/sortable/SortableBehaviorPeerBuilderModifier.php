@@ -121,6 +121,7 @@ const SCOPE_COL = $col;
 ";
 
         }
+
         return $script;
     }
 
@@ -290,7 +291,7 @@ public static function reorder(array \$order, PropelPDO \$con = null)
         \$con->commit();
 
         return true;
-    } catch (PropelException \$e) {
+    } catch (Exception \$e) {
         \$con->rollback();
         throw \$e;
     }

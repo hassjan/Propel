@@ -851,7 +851,7 @@ class Propel
      * classname of a validator in the schema.xml.  This method will attempt to include that
      * class via autoload and then relative to a location on the include_path.
      *
-     * @param  string $class dot-path to clas (e.g. path.to.my.ClassName).
+     * @param string $class dot-path to clas (e.g. path.to.my.ClassName).
      *
      * @return string unqualified classname
      *
@@ -944,5 +944,5 @@ Propel::initBaseDir();
 spl_autoload_register(array('Propel', 'autoload'));
 
 if (version_compare(PHP_VERSION, '5.3.0', '<')) {
-    require_once __DIR__ . '/../stubs/functions.php';
+    require_once dirname(__FILE__) . '/../stubs/functions.php';
 }
