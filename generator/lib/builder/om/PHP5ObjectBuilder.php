@@ -1778,7 +1778,7 @@ abstract class " . $this->getClassname() . " extends " . $parentClass . " ";
         $script .= "
         if (\$this->$cloUnserialized !== \$v) {
             \$this->$cloUnserialized = \$v;
-            \$this->$clo = '| ' . implode(' | ', (array)\$v) . ' |';
+            \$this->$clo = '| ' . implode(' | ', (array) \$v) . ' |';
             \$this->modifiedColumns[] = " . $this->getColumnConstant($col) . ";
         }
 ";
@@ -2456,8 +2456,7 @@ abstract class " . $this->getClassname() . " extends " . $parentClass . " ";
         );";
         $script .= "
         \$virtualColumns = \$this->virtualColumns;
-        foreach(\$virtualColumns as \$key => \$virtualColumn)
-        {
+        foreach (\$virtualColumns as \$key => \$virtualColumn) {
             \$result[\$key] = \$virtualColumn;
         }
         ";
@@ -4500,7 +4499,7 @@ abstract class " . $this->getClassname() . " extends " . $parentClass . " ";
     public function set{$relatedNamePlural}(PropelCollection \${$inputCollection}, PropelPDO \$con = null)
     {
         \$this->clear{$relatedNamePlural}();
-        \$current{$relatedNamePlural} = \$this->get{$relatedNamePlural}();
+        \$current{$relatedNamePlural} = \$this->get{$relatedNamePlural}(null, \$con);
 
         \$this->{$inputCollection}ScheduledForDeletion = \$current{$relatedNamePlural}->diff(\${$inputCollection});
 
@@ -4616,6 +4615,7 @@ abstract class " . $this->getClassname() . " extends " . $parentClass . " ";
     protected function addCrossFKDoAdd(&$script, ForeignKey $refFK, ForeignKey $crossFK)
     {
         $relatedObjectClassName = $this->getFKPhpNameAffix($crossFK, $plural = false);
+        $relatedObjectName = $this->getNewStubObjectBuilder($crossFK->getForeignTable())->getClassname();
 
         $selfRelationNamePlural = $this->getFKPhpNameAffix($refFK, $plural = true);
 
@@ -4632,7 +4632,7 @@ abstract class " . $this->getClassname() . " extends " . $parentClass . " ";
     /**
      * @param	{$relatedObjectClassName} \${$lowerRelatedObjectClassName} The $lowerRelatedObjectClassName object to add.
      */
-    protected function doAdd{$relatedObjectClassName}(\${$lowerRelatedObjectClassName})
+    protected function doAdd{$relatedObjectClassName}({$relatedObjectName} \${$lowerRelatedObjectClassName})
     {
         // set the back reference to this object directly as using provided method either results
         // in endless loop or in multiple relations
